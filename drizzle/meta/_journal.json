@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1782861337120,
+      "tag": "0000_jittery_spot",
+      "breakpoints": true
+    }
+  ]
+}
