@@ -23,10 +23,12 @@ export const proxy = clerkMiddleware(async (auth, request: NextRequest) => {
   const nonce = crypto.randomUUID().replace(/-/g, "");
   const csp = [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://challenges.cloudflare.com`,
     `style-src 'self' 'unsafe-inline'`,
     `img-src 'self' data: https:`,
     `connect-src 'self' https:`,
+    `worker-src 'self' blob:`,
+    `frame-src 'self' https://challenges.cloudflare.com https://*.clerk.accounts.dev`,
     `frame-ancestors 'none'`,
   ].join("; ");
 
