@@ -74,6 +74,105 @@ export const healthRecords = pgTable(
   ],
 );
 
+export const posts = pgTable(
+  "posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    petId: uuid("pet_id")
+      .notNull()
+      .references(() => pets.id, { onDelete: "cascade" }),
+    timelineEntryId: uuid("timeline_entry_id").references(() => timelineEntries.id, {
+      onDelete: "set null",
+    }),
+    mediaUrl: text("media_url").notNull(),
+    caption: text("caption"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("posts_user_id_idx").on(table.userId),
+    index("posts_pet_id_idx").on(table.petId),
+    index("posts_created_at_idx").on(table.createdAt),
+  ],
+);
+
+export const postLikes = pgTable(
+  "post_likes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("post_likes_post_id_idx").on(table.postId),
+    index("post_likes_post_id_user_id_idx").on(table.postId, table.userId),
+  ],
+);
+
+export const follows = pgTable(
+  "follows",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    followerId: uuid("follower_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    followeeId: uuid("followee_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("follows_follower_id_idx").on(table.followerId),
+    index("follows_followee_id_idx").on(table.followeeId),
+    index("follows_follower_id_followee_id_idx").on(table.followerId, table.followeeId),
+  ],
+);
+
+export const healthSignalTypeValues = [
+  "behavior_change",
+  "weight_change",
+  "lethargy",
+  "visual_concern",
+] as const;
+
+export const healthSignalStatusValues = [
+  "new",
+  "acknowledged",
+  "dismissed",
+  "acted_on",
+] as const;
+
+export const petHealthSignals = pgTable(
+  "pet_health_signals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    petId: uuid("pet_id")
+      .notNull()
+      .references(() => pets.id, { onDelete: "cascade" }),
+    timelineEntryId: uuid("timeline_entry_id").references(() => timelineEntries.id, {
+      onDelete: "cascade",
+    }),
+    postId: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }),
+    signalType: text("signal_type", { enum: healthSignalTypeValues }).notNull(),
+    description: text("description").notNull(),
+    confidence: numeric("confidence", { precision: 3, scale: 2 }).notNull(),
+    status: text("status", { enum: healthSignalStatusValues }).default("new").notNull(),
+    detectedAt: timestamp("detected_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("pet_health_signals_pet_id_idx").on(table.petId),
+    index("pet_health_signals_status_idx").on(table.status),
+    index("pet_health_signals_detected_at_idx").on(table.detectedAt),
+  ],
+);
+
 export const subscriptionStatusValues = [
   "active",
   "trialing",
