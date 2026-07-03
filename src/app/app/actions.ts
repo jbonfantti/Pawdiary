@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { pets, timelineEntries } from "@/lib/db/schema";
+import { pets, petSpeciesValues, timelineEntries } from "@/lib/db/schema";
 import { getOrCreateUser } from "@/lib/user";
 import { uploadDiaryMedia } from "@/lib/storage/blob";
 
@@ -20,11 +20,17 @@ export async function addPet(formData: FormData) {
   const breed = String(formData.get("breed") ?? "").trim();
   const birthDateRaw = String(formData.get("birthDate") ?? "");
 
+  const speciesRaw = String(formData.get("species") ?? "");
+  const species = (petSpeciesValues as readonly string[]).includes(speciesRaw)
+    ? (speciesRaw as (typeof petSpeciesValues)[number])
+    : "other";
+
   const [pet] = await db
     .insert(pets)
     .values({
       userId: user.id,
       name,
+      species,
       breed: breed || null,
       birthDate: birthDateRaw ? new Date(birthDateRaw) : null,
     })

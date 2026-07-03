@@ -4,7 +4,7 @@ import { UserButton } from "@clerk/nextjs";
 import { db } from "@/lib/db/client";
 import { pets } from "@/lib/db/schema";
 import { getOrCreateUser } from "@/lib/user";
-import { ALL_BREEDS } from "@/lib/breeds";
+import { AddPetForm, SPECIES_LABELS } from "@/components/AddPetForm";
 import { hasPremium } from "@/lib/premium";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import { addPet } from "./actions";
@@ -59,9 +59,10 @@ export default async function AppHomePage({
                 className="block rounded-2xl border border-zinc-200 p-5 hover:border-zinc-400"
               >
                 <span className="text-lg font-medium">{pet.name}</span>
-                {pet.breed && (
-                  <span className="ml-2 text-sm text-zinc-500">{pet.breed}</span>
-                )}
+                <span className="ml-2 text-sm text-zinc-500">
+                  {SPECIES_LABELS[pet.species]}
+                  {pet.breed ? ` · ${pet.breed}` : ""}
+                </span>
               </Link>
             </li>
           ))}
@@ -70,47 +71,7 @@ export default async function AppHomePage({
 
       <section className="mt-10 rounded-2xl border border-zinc-200 p-6">
         <h2 className="text-lg font-semibold">Add a pet</h2>
-        <form action={addPet} className="mt-4 grid gap-4">
-          <label className="grid gap-1 text-sm">
-            <span className="font-medium">Name</span>
-            <input
-              name="name"
-              required
-              maxLength={80}
-              placeholder="Rex"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-          </label>
-          <label className="grid gap-1 text-sm">
-            <span className="font-medium">Breed (optional)</span>
-            <input
-              name="breed"
-              maxLength={80}
-              placeholder="Start typing or pick from the list…"
-              list="breed-options"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <datalist id="breed-options">
-              {ALL_BREEDS.map((breed) => (
-                <option key={breed} value={breed} />
-              ))}
-            </datalist>
-          </label>
-          <label className="grid gap-1 text-sm">
-            <span className="font-medium">Birth date (optional)</span>
-            <input
-              name="birthDate"
-              type="date"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-          </label>
-          <button
-            type="submit"
-            className="w-fit rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-zinc-700"
-          >
-            Add pet
-          </button>
-        </form>
+        <AddPetForm action={addPet} />
       </section>
 
       {!premium && (

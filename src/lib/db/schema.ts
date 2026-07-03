@@ -15,6 +15,19 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const petSpeciesValues = [
+  "dog",
+  "cat",
+  "bird",
+  "rabbit",
+  "hamster",
+  "guinea_pig",
+  "fish",
+  "reptile",
+  "ferret",
+  "other",
+] as const;
+
 export const pets = pgTable(
   "pets",
   {
@@ -23,6 +36,8 @@ export const pets = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    // Existing rows predate this column and are dogs, hence the default.
+    species: text("species", { enum: petSpeciesValues }).default("dog").notNull(),
     breed: text("breed"),
     birthDate: timestamp("birth_date", { withTimezone: true }),
     photoUrl: text("photo_url"),
