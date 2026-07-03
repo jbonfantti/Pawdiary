@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/schema";
 import { getOrCreateUser } from "@/lib/user";
 import { uploadDiaryMedia } from "@/lib/storage/blob";
+import { generatePhotoCaption } from "@/lib/ai/caption";
 
 const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
 
@@ -58,7 +59,7 @@ export async function addPhotoEntry(formData: FormData) {
 
   // Ownership check: never trust the petId from the form alone.
   const [pet] = await db
-    .select({ id: pets.id })
+    .select({ id: pets.id, name: pets.name, species: pets.species, breed: pets.breed })
     .from(pets)
     .where(and(eq(pets.id, petId), eq(pets.userId, user.id)))
     .limit(1);
@@ -66,13 +67,27 @@ export async function addPhotoEntry(formData: FormData) {
 
   const blob = await uploadDiaryMedia(`pets/${pet.id}/photos/${photo.name}`, photo);
 
-  const caption = String(formData.get("caption") ?? "").trim();
+  let caption = String(formData.get("caption") ?? "").trim();
+  let aiGenerated = false;
+
+  if (!caption) {
+    const generated = await generatePhotoCaption(
+      await photo.arrayBuffer(),
+      photo.type,
+      pet,
+    );
+    if (generated) {
+      caption = generated;
+      aiGenerated = true;
+    }
+  }
 
   await db.insert(timelineEntries).values({
     petId: pet.id,
     type: "photo",
     mediaUrl: blob.url,
     caption: caption || null,
+    aiGenerated,
     occurredAt: new Date(),
   });
 

@@ -22,7 +22,7 @@
     "@sentry/nextjs": "^10.62.0",
     "@stripe/stripe-js": "^9.8.0",
     "@vercel/blob": "^2.5.0",
-    "ai": "^7.0.9",
+    "ai": "^7.0.14",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",

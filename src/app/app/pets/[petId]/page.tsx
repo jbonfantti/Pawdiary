@@ -145,7 +145,16 @@ export default async function PetPage({
                     className="w-full rounded-xl object-cover"
                   />
                 )}
-                {entry.caption && <p className="mt-3 text-sm">{entry.caption}</p>}
+                {entry.caption && (
+                  <p className="mt-3 text-sm">
+                    {entry.caption}
+                    {entry.aiGenerated && (
+                      <span className="ml-2 rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-600">
+                        AI
+                      </span>
+                    )}
+                  </p>
+                )}
                 <p className="mt-2 text-xs text-zinc-500">
                   {dateFormat.format(entry.occurredAt)}
                 </p>
