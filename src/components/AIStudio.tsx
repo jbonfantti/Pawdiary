@@ -15,6 +15,12 @@ const AVATAR_STYLE_OPTIONS = [
   { value: "oil_painting", label: "Oil Painting" },
 ];
 
+// Suggestion lines start with a decorative emoji; the accessory prompt
+// reads better without it.
+function stripEmoji(line: string): string {
+  return line.replace(/^[^\p{L}\p{N}]+/u, "").trim();
+}
+
 const ERROR_MESSAGES: Record<string, string> = {
   premium_required: "Image generation is a Premium feature — upgrade to unlock it.",
   no_photo: "Add a photo to the diary first so the AI has something to work with.",
@@ -71,9 +77,24 @@ export function AIStudio({ petId, premium }: { petId: string; premium: boolean }
           </button>
 
           {suggestions && (
-            <pre className="mt-3 whitespace-pre-wrap font-sans text-sm text-zinc-700">
-              {suggestions}
-            </pre>
+            <div className="mt-3 grid gap-2">
+              {suggestions
+                .split("\n")
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line) => (
+                  <button
+                    key={line}
+                    onClick={() => setAccessory(stripEmoji(line))}
+                    className="rounded-lg border border-zinc-200 px-3 py-2 text-left text-sm text-zinc-700 hover:border-violet-400 hover:bg-violet-50"
+                  >
+                    {line}
+                  </button>
+                ))}
+              <p className="text-xs text-zinc-500">
+                Tap an idea to try it on below.
+              </p>
+            </div>
           )}
 
           <div className="mt-4 border-t border-zinc-100 pt-4">
