@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { stripe, PREMIUM_PRICE_ID } from "@/lib/stripe";
 
-const APP_URL = "https://pawdiary.io";
+// www, not apex: pawdiary.io 308-redirects to www.pawdiary.io. Browsers follow
+// that fine, but keeping every self-URL on www avoids the same class of bug
+// that silently broke Stripe webhook delivery (Stripe does not follow redirects).
+const APP_URL = "https://www.pawdiary.io";
 
 export async function POST() {
   const { userId } = await auth();
