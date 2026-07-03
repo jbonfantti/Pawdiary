@@ -81,6 +81,9 @@ export default async function PetPage({
               placeholder="First day at the beach!"
               className="rounded-lg border border-zinc-300 px-3 py-2"
             />
+            <span className="text-xs text-zinc-500">
+              ✨ Leave it blank and our AI will write one for you.
+            </span>
           </label>
           <button
             type="submit"
