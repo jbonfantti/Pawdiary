@@ -10,6 +10,12 @@ import {
   RECORD_TYPE_LABELS,
 } from "@/components/AddHealthRecordForm";
 import { WeightChart } from "@/components/WeightChart";
+import { AIStudio } from "@/components/AIStudio";
+import { hasPremium } from "@/lib/premium";
+
+// AI image generation runs inside server actions invoked from this page and
+// can take ~30s; the default function timeout would cut it off.
+export const maxDuration = 60;
 
 const LB_PER_KG = 2.20462;
 
@@ -47,6 +53,8 @@ export default async function PetPage({
     .from(healthRecords)
     .where(eq(healthRecords.petId, pet.id))
     .orderBy(desc(healthRecords.recordedAt));
+
+  const premium = await hasPremium(user.clerkId);
 
   const weightPoints = records.filter(
     (r): r is typeof r & { weightKg: string } =>
@@ -93,6 +101,8 @@ export default async function PetPage({
           </button>
         </form>
       </section>
+
+      <AIStudio petId={pet.id} premium={premium} />
 
       <section className="mt-8 rounded-2xl border border-zinc-200 p-6">
         <h2 className="text-lg font-semibold">Health book</h2>
