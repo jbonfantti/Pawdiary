@@ -4,6 +4,7 @@ import { UserButton } from "@clerk/nextjs";
 import { db } from "@/lib/db/client";
 import { pets } from "@/lib/db/schema";
 import { getOrCreateUser } from "@/lib/user";
+import { ALL_BREEDS } from "@/lib/breeds";
 import { hasPremium } from "@/lib/premium";
 import { UpgradeButton } from "@/components/UpgradeButton";
 import { addPet } from "./actions";
@@ -85,9 +86,15 @@ export default async function AppHomePage({
             <input
               name="breed"
               maxLength={80}
-              placeholder="Golden Retriever"
+              placeholder="Start typing or pick from the list…"
+              list="breed-options"
               className="rounded-lg border border-zinc-300 px-3 py-2"
             />
+            <datalist id="breed-options">
+              {ALL_BREEDS.map((breed) => (
+                <option key={breed} value={breed} />
+              ))}
+            </datalist>
           </label>
           <label className="grid gap-1 text-sm">
             <span className="font-medium">Birth date (optional)</span>

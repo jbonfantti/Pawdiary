@@ -1,0 +1,58 @@
+// Curated list of popular US dog and cat breeds for the add-pet breed picker.
+// The field still accepts free text, so this doesn't need to be exhaustive —
+// mixed/rare breeds can be typed in.
+export const DOG_BREEDS = [
+  "Australian Shepherd",
+  "Beagle",
+  "Bernese Mountain Dog",
+  "Bichon Frise",
+  "Border Collie",
+  "Boston Terrier",
+  "Boxer",
+  "Bulldog",
+  "Cane Corso",
+  "Cavalier King Charles Spaniel",
+  "Chihuahua",
+  "Cocker Spaniel",
+  "Corgi",
+  "Dachshund",
+  "Doberman Pinscher",
+  "English Springer Spaniel",
+  "French Bulldog",
+  "German Shepherd",
+  "Golden Retriever",
+  "Great Dane",
+  "Havanese",
+  "Husky",
+  "Jack Russell Terrier",
+  "Labrador Retriever",
+  "Maltese",
+  "Miniature Schnauzer",
+  "Mixed Breed",
+  "Pit Bull",
+  "Pomeranian",
+  "Poodle",
+  "Pug",
+  "Rottweiler",
+  "Shiba Inu",
+  "Shih Tzu",
+  "Yorkshire Terrier",
+] as const;
+
+export const CAT_BREEDS = [
+  "Abyssinian",
+  "American Shorthair",
+  "Bengal",
+  "British Shorthair",
+  "Domestic Longhair",
+  "Domestic Shorthair",
+  "Maine Coon",
+  "Persian",
+  "Ragdoll",
+  "Russian Blue",
+  "Scottish Fold",
+  "Siamese",
+  "Sphynx",
+] as const;
+
+export const ALL_BREEDS = [...DOG_BREEDS, ...CAT_BREEDS].sort();
