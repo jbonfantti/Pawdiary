@@ -2,9 +2,16 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { pets, timelineEntries } from "@/lib/db/schema";
+import { healthRecords, pets, timelineEntries } from "@/lib/db/schema";
 import { getOrCreateUser } from "@/lib/user";
-import { addPhotoEntry } from "../../actions";
+import { addHealthRecord, addPhotoEntry } from "../../actions";
+import {
+  AddHealthRecordForm,
+  RECORD_TYPE_LABELS,
+} from "@/components/AddHealthRecordForm";
+import { WeightChart } from "@/components/WeightChart";
+
+const LB_PER_KG = 2.20462;
 
 const dateFormat = new Intl.DateTimeFormat("en-US", {
   month: "long",
@@ -34,6 +41,17 @@ export default async function PetPage({
     .from(timelineEntries)
     .where(eq(timelineEntries.petId, pet.id))
     .orderBy(desc(timelineEntries.occurredAt));
+
+  const records = await db
+    .select()
+    .from(healthRecords)
+    .where(eq(healthRecords.petId, pet.id))
+    .orderBy(desc(healthRecords.recordedAt));
+
+  const weightPoints = records.filter(
+    (r): r is typeof r & { weightKg: string } =>
+      r.type === "weight" && r.weightKg !== null,
+  );
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
@@ -71,6 +89,41 @@ export default async function PetPage({
             Add to diary
           </button>
         </form>
+      </section>
+
+      <section className="mt-8 rounded-2xl border border-zinc-200 p-6">
+        <h2 className="text-lg font-semibold">Health book</h2>
+        <AddHealthRecordForm petId={pet.id} action={addHealthRecord} />
+
+        <WeightChart points={weightPoints} />
+
+        {records.length > 0 && (
+          <ul className="mt-4 grid gap-2">
+            {records.map((record) => (
+              <li
+                key={record.id}
+                className="flex items-baseline justify-between rounded-lg bg-zinc-50 px-4 py-2.5 text-sm"
+              >
+                <span>
+                  <span className="font-medium">
+                    {RECORD_TYPE_LABELS[record.type]}
+                  </span>
+                  {record.type === "weight" && record.weightKg && (
+                    <span className="ml-2">
+                      {(Number(record.weightKg) * LB_PER_KG).toFixed(1)} lbs
+                    </span>
+                  )}
+                  {record.notes && (
+                    <span className="ml-2 text-zinc-500">{record.notes}</span>
+                  )}
+                </span>
+                <span className="text-xs text-zinc-500">
+                  {dateFormat.format(record.recordedAt)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="mt-10">
