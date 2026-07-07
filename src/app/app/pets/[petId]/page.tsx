@@ -11,6 +11,7 @@ import {
 } from "@/components/AddHealthRecordForm";
 import { WeightChart } from "@/components/WeightChart";
 import { AIStudio } from "@/components/AIStudio";
+import { PhotoFilterButton } from "@/components/PhotoFilterButton";
 import { hasPremium } from "@/lib/premium";
 
 // AI image generation runs inside server actions invoked from this page and
@@ -171,6 +172,9 @@ export default async function PetPage({
                 <p className="mt-2 text-xs text-zinc-500">
                   {dateFormat.format(entry.occurredAt)}
                 </p>
+                {entry.mediaUrl && !entry.aiGenerated && (
+                  <PhotoFilterButton entryId={entry.id} />
+                )}
               </li>
             ))}
           </ul>

@@ -11,6 +11,7 @@ import { uploadDiaryMedia } from "@/lib/storage/blob";
 import {
   AVATAR_STYLES,
   generateAvatarImage,
+  generateFilteredImage,
   generateOutfitImage,
   suggestOutfits,
   type AvatarStyle,
@@ -144,5 +145,54 @@ async function generateToTimeline(
   });
 
   revalidatePath(`/app/pets/${ctx.pet.id}`);
+  return { ok: true };
+}
+
+/**
+ * Applies an artistic filter to one specific timeline photo (unlike the
+ * studio flows above, which always use the latest photo).
+ */
+export async function applyFilterToEntry(
+  entryId: string,
+  style: string,
+): Promise<StudioResult> {
+  if (!(style in AVATAR_STYLES)) return { ok: false, error: "failed" };
+  const filterStyle = style as AvatarStyle;
+
+  const user = await getOrCreateUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+  if (!(await hasPremium(user.clerkId))) {
+    return { ok: false, error: "premium_required" };
+  }
+
+  const [row] = await db
+    .select({ petId: timelineEntries.petId, mediaUrl: timelineEntries.mediaUrl })
+    .from(timelineEntries)
+    .innerJoin(pets, eq(timelineEntries.petId, pets.id))
+    .where(and(eq(timelineEntries.id, entryId), eq(pets.userId, user.id)))
+    .limit(1);
+  if (!row?.mediaUrl) return { ok: false, error: "no_photo" };
+
+  const photo = await fetchPhoto(row.mediaUrl);
+  if (!photo) return { ok: false, error: "no_photo" };
+
+  const image = await generateFilteredImage(photo.bytes, photo.mediaType, filterStyle);
+  if (!image) return { ok: false, error: "failed" };
+
+  const blob = await uploadDiaryMedia(
+    `pets/${row.petId}/ai/filtered.png`,
+    Buffer.from(image),
+  );
+
+  await db.insert(timelineEntries).values({
+    petId: row.petId,
+    type: "photo",
+    mediaUrl: blob.url,
+    caption: `AI Filter — ${filterStyle.replace("_", " ")} ✨`,
+    aiGenerated: true,
+    occurredAt: new Date(),
+  });
+
+  revalidatePath(`/app/pets/${row.petId}`);
   return { ok: true };
 }

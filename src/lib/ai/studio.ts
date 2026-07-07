@@ -86,6 +86,24 @@ export async function generateAvatarImage(
   );
 }
 
+/**
+ * Premium: the exact photo re-rendered in an artistic style. Unlike avatars
+ * (portrait crops), filters keep the full scene and composition.
+ */
+export async function generateFilteredImage(
+  photo: ArrayBuffer,
+  mediaType: string,
+  style: AvatarStyle,
+): Promise<Uint8Array | null> {
+  return editImage(
+    photo,
+    mediaType,
+    `Re-render this exact photo in ${AVATAR_STYLES[style]}. ` +
+      "Keep the full scene, composition, framing, and every subject exactly as " +
+      "they are — only change the artistic rendering style.",
+  );
+}
+
 async function editImage(
   photo: ArrayBuffer,
   mediaType: string,
