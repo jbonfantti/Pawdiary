@@ -6,6 +6,7 @@ import {
   numeric,
   boolean,
   index,
+  integer,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -86,6 +87,41 @@ export const healthRecords = pgTable(
   (table) => [
     index("health_records_pet_id_idx").on(table.petId),
     index("health_records_recorded_at_idx").on(table.recordedAt),
+  ],
+);
+
+export const careReminderTypeValues = [
+  "vaccine",
+  "dewormer",
+  "flea_tick",
+  "heartworm",
+  "medication",
+  "vet_visit",
+  "grooming",
+  "other",
+] as const;
+
+export const careReminders = pgTable(
+  "care_reminders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    petId: uuid("pet_id")
+      .notNull()
+      .references(() => pets.id, { onDelete: "cascade" }),
+    type: text("type", { enum: careReminderTypeValues }).notNull(),
+    title: text("title").notNull(),
+    // Calendar day the care is due, stored as midnight UTC of that day.
+    dueAt: timestamp("due_at", { withTimezone: true }).notNull(),
+    // Null means one-off; otherwise completing it rolls dueAt forward.
+    repeatDays: integer("repeat_days"),
+    notes: text("notes"),
+    // Set only for one-off reminders once done; recurring ones never complete.
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("care_reminders_pet_id_idx").on(table.petId),
+    index("care_reminders_due_at_idx").on(table.dueAt),
   ],
 );
 

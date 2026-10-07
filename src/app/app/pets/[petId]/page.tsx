@@ -4,7 +4,13 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { healthRecords, pets, timelineEntries } from "@/lib/db/schema";
 import { getOrCreateUser } from "@/lib/user";
-import { addHealthRecord, addPhotoEntry } from "../../actions";
+import {
+  addCareReminder,
+  addHealthRecord,
+  addPhotoEntry,
+  completeCareReminder,
+  deleteCareReminder,
+} from "../../actions";
 import {
   AddHealthRecordForm,
   RECORD_TYPE_LABELS,
@@ -13,6 +19,10 @@ import { WeightChart } from "@/components/WeightChart";
 import { AIStudio } from "@/components/AIStudio";
 import { PhotoFilterButton } from "@/components/PhotoFilterButton";
 import { hasPremium } from "@/lib/premium";
+import { getOpenRemindersForUser } from "@/lib/reminders/queries";
+import { AddCareReminderForm } from "@/components/AddCareReminderForm";
+import { CareReminderList } from "@/components/CareReminderList";
+import { ReminderScheduler } from "@/components/ReminderScheduler";
 
 // AI image generation runs inside server actions invoked from this page and
 // can take ~30s; the default function timeout would cut it off.
@@ -57,6 +67,11 @@ export default async function PetPage({
 
   const premium = await hasPremium(user.clerkId);
 
+  // Fetched across all pets so the native scheduler never drops other pets'
+  // notifications when it re-syncs from this page.
+  const allReminders = await getOpenRemindersForUser(user.id);
+  const petReminders = allReminders.filter((r) => r.petId === pet.id);
+
   const weightPoints = records.filter(
     (r): r is typeof r & { weightKg: string } =>
       r.type === "weight" && r.weightKg !== null,
@@ -70,6 +85,29 @@ export default async function PetPage({
 
       <h1 className="mt-4 text-3xl font-semibold">{pet.name}</h1>
       {pet.breed && <p className="mt-1 text-zinc-500">{pet.breed}</p>}
+
+      <ReminderScheduler
+        reminders={allReminders.map((r) => ({
+          id: r.id,
+          petName: r.petName,
+          title: r.title,
+          dueAt: r.dueAt.toISOString(),
+        }))}
+      />
+
+      <section className="mt-8 rounded-2xl border border-zinc-200 p-6">
+        <h2 className="text-lg font-semibold">Care reminders</h2>
+        <p className="mt-1 text-sm text-zinc-500">
+          Vaccines, flea &amp; tick, heartworm and meds, so nothing slips. Always follow
+          your vet&apos;s schedule.
+        </p>
+        <CareReminderList
+          reminders={petReminders}
+          completeAction={completeCareReminder}
+          deleteAction={deleteCareReminder}
+        />
+        <AddCareReminderForm petId={pet.id} action={addCareReminder} />
+      </section>
 
       <section className="mt-8 rounded-2xl border border-zinc-200 p-6">
         <h2 className="text-lg font-semibold">Add a photo</h2>

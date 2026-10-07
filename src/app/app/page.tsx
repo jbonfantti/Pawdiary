@@ -7,7 +7,10 @@ import { getOrCreateUser } from "@/lib/user";
 import { AddPetForm, SPECIES_LABELS } from "@/components/AddPetForm";
 import { hasPremium } from "@/lib/premium";
 import { UpgradeButton } from "@/components/UpgradeButton";
-import { addPet } from "./actions";
+import { getOpenRemindersForUser } from "@/lib/reminders/queries";
+import { CareReminderList } from "@/components/CareReminderList";
+import { ReminderScheduler } from "@/components/ReminderScheduler";
+import { addPet, completeCareReminder } from "./actions";
 
 export default async function AppHomePage({
   searchParams,
@@ -17,6 +20,7 @@ export default async function AppHomePage({
   const user = await getOrCreateUser();
   const premium = user ? await hasPremium(user.clerkId) : false;
   const { upgraded } = await searchParams;
+  const reminders = user ? await getOpenRemindersForUser(user.id) : [];
 
   const myPets = user
     ? await db
@@ -44,6 +48,26 @@ export default async function AppHomePage({
         <p className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Welcome to Premium! AI health monitoring is now enabled for your pets.
         </p>
+      )}
+
+      <ReminderScheduler
+        reminders={reminders.map((r) => ({
+          id: r.id,
+          petName: r.petName,
+          title: r.title,
+          dueAt: r.dueAt.toISOString(),
+        }))}
+      />
+
+      {reminders.length > 0 && (
+        <section className="mt-6 rounded-2xl border border-zinc-200 p-6">
+          <h2 className="text-lg font-semibold">Coming up</h2>
+          <CareReminderList
+            reminders={reminders.slice(0, 5)}
+            showPetName
+            completeAction={completeCareReminder}
+          />
+        </section>
       )}
 
       {myPets.length === 0 ? (
